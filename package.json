@@ -1,0 +1,32 @@
+{
+  "name": "reactbase",
+  "version": "0.0.1",
+  "description": "A firebase orm which uses react hooks",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thehult/reactbase.git"
+  },
+  "author": "TheHult",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/thehult/reactbase/issues"
+  },
+  "homepage": "https://github.com/thehult/reactbase#readme",
+  "peerDependencies": {
+    "firebase": "^8.2.4",
+    "react": "^17.0.1"
+  },
+  "devDependencies": {
+    "@types/react": "^17.0.0",
+    "firebase": "^8.2.5",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
+    "react-scripts-ts": "^3.1.0",
+    "typescript": "^4.1.3"
+  }
+}

@@ -16,11 +16,16 @@ export interface IModel {
   load(...ids: string[]): Promise<void> | undefined;
 }
 
-export const model = <M extends { new (...args:any[]): {} }>(constructor: M, ...collection: string[]) => {
+/**
+ * Use for collection "threads": ```class Thread extends Model("threads") { ... } ```
+ * Use for subcollection "replies": ```class Reply extends Model("threads", "replies") { ... } ```
+ * @param collection Array of collection names
+ */
+export const Model = (...collection: string[]) => {
   assert(collection.length > 0, "Collection parameter must be at least 1.")
 
 
-  return class DataModel extends constructor implements IModel {
+  return class DataModel implements IModel {
     // Start of extended model
     id: string | null = null;
     ref: firebase.firestore.DocumentReference | null = null;

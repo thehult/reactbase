@@ -1,8 +1,10 @@
 import firebase from 'firebase'
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import store from '../store';
 import { useMemoCompare } from '../useMemoCompare.hook';
 import assert from 'assert'
+import { useLoadingValue } from '../useLoadingValue.hook';
+import { useCache } from '../useCache.hook';
 
 
 export interface IModel {
@@ -76,10 +78,10 @@ export const Model = (...collection: string[]) => {
     }
 
     static useDocument<T extends DataModel>(this: new() => T , ...ids: (string | undefined)[]) : [T | null, boolean, Error | undefined] {
-      const [value, setValue] = useState<T | null>(null);
-      const [loading, setLoading] = useState(true);
-      const [error, setError] = useState<Error | undefined>(undefined);
-      
+      const cache = useCache<T>(collection.join("/"));
+
+      const [state, init, setValue, setError] = useLoadingValue<T, Error>();
+
       const idCached = useMemoCompare<string[]>(ids as string[], (prev: string[] | undefined) => {
         if (!ids || !prev) return false;
         let res = true;
@@ -88,35 +90,50 @@ export const Model = (...collection: string[]) => {
         }
         return res;
       });
-    
+
       useEffect(() => {
         let mounted = true;
     
-        setLoading(true);
-        setValue(null);
-        setError(undefined);
+        init();
     
-        if(ids) {
-          var doc = new this();
-          doc.load(...ids as string[])
+        if(idCached && idCached.length === collection.length) {
+          // Load from db or cache
+          var cached = cache.get(idCached.join("/"));
+          if(cached) {
+            console.log("Using cache");
+            setValue(cached);
+          } else {
+            console.log("Fetching");
+            var doc = new this();
+            doc.load(...idCached as string[])
             .then(() => {
               if(mounted) {
+                cache.add(idCached.join("/"), doc);
                 setValue(doc);
-                setError(undefined);
-                setLoading(false);
               }
             })
             .catch((err) => {
-              setValue(null);
-              setError(new Error(err));
-              setLoading(false);
+              if(mounted) setError(new Error(err))
+            })
+          }
+          
+        } else {
+          // Create new 
+          var doc = new this();
+          doc.load()
+            .then(() => {
+              if(mounted) setValue(doc);
+            })
+            .catch((err) => {
+              if(mounted) setError(new Error(err));
             })
         }
+        
     
         return () => { mounted = false };
       }, [idCached]);
       
-      return [value, loading, error];
+      return state;
     } 
 
     // End of extended model
